@@ -58,7 +58,7 @@ def draw_board(n=8, sq_size=(20, 20)):
     from itertools import cycle
 
     def square(i, j):
-        return i * (sq_size[0]+10), j * (sq_size[1] + 10)
+        return i * (sq_size[0] + 10), j * (sq_size[1] + 10)
     opaque_grey_background = 192, 255
     board = Image.new('LA', square(n, n), opaque_grey_background)
     draw_square = ImageDraw.Draw(board).rectangle
@@ -116,7 +116,7 @@ class DrawChessPosition(object):
         return i * (h + 10) + 57, j * (w + 10) + 46
 
     def square(self, i, j):
-        return i * (self.piece_w+10), j * (self.piece_h + 10)
+        return i * (self.piece_w + 10), j * (self.piece_h + 10)
 
     def draw(self, fen, white, lastmove=None):
         '''Return an image depicting the input position.
@@ -134,7 +134,7 @@ class DrawChessPosition(object):
             letters = ["h", "g", "f", "e", "d", "c", "b", "a"]
             numbers = ["1", "2", "3", "4", "5", "6", "7", "8"]
 
-        if not lastmove is None:
+        if lastmove is not None:
             ImageDraw.Draw(board).rectangle(
                 (self.square(letters.index(lastmove[0]), numbers.index(lastmove[1])),
                  self.square(letters.index(lastmove[0]) + 1, numbers.index(lastmove[1]) + 1)), fill="gray")
@@ -146,7 +146,7 @@ class DrawChessPosition(object):
         if white:
             pts = (self.point(i, j) for j in range(n) for i in range(n))
         else:
-            pts = (self.point(7-i, 7-j) for j in range(n) for i in range(n))
+            pts = (self.point(7 - i, 7 - j) for j in range(n) for i in range(n))
 
         def not_blank(pt_pc):
             return pt_pc[1] != ' '

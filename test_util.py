@@ -1,4 +1,4 @@
-from util import *
+from util import rchop
 
 
 def test_rchop():

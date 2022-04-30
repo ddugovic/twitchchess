@@ -1,7 +1,6 @@
 from kivy.core.image import Image as CoreImage
 from kivy.uix.image import Image as kiImage
 from kivy.graphics import Color, Rectangle
-from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -13,16 +12,14 @@ import render
 import configparser
 from kivy.clock import Clock
 from twitchio.ext import commands
-from multiprocessing import Process, Manager, Array
-import threading
+from multiprocessing import Process, Manager
 from matplotlib import pyplot
 import numpy as np
 from kivy.config import Config
-from time import sleep
 from datetime import date
 from collections import deque
 import tpcdb
-from util import *
+from util import broadcast, get_params, process_name, rchop
 import random
 from textwrap import wrap
 import asyncio
@@ -61,8 +58,8 @@ class main(FloatLayout):
         self.board_evaluations = deque([], 5)
 
         # init from file
-        #self.stats = configparser.ConfigParser()
-        #temp = open("game.log")
+        # self.stats = configparser.ConfigParser()
+        # temp = open("game.log")
         # self.stats.read_file(temp)
 
         self.render = kiImage(pos=(-280, 0), height=700, allow_stretch=True)
@@ -73,8 +70,8 @@ class main(FloatLayout):
         self.board = chess.Board()
         self.renderer = render.DrawChessPosition()
         self.moves_string = ""
-        #self.board.set_fen("4r1k1/B4p2/PPPPPPPP/bpbbbpbp/PPPPPPPP/1P2P2P/4q3/6K1 b - - 8 43")
-        #self.is_white = False
+        # self.board.set_fen("4r1k1/B4p2/PPPPPPPP/bpbbbpbp/PPPPPPPP/1P2P2P/4q3/6K1 b - - 8 43")
+        # self.is_white = False
         self.is_white = self.board.turn
         self.record = db.get_record()
         self.round = db.get_round_no()
@@ -185,12 +182,12 @@ class main(FloatLayout):
             self.game_history.headers["Date"] = date.today().strftime(
                 "%Y/%m/%d")
             self.game_history.headers["Round"] = self.round
-            if not c is None and "challenger" in c:
+            if c is not None and "challenger" in c:
                 opp = c["challenger"]
             else:
                 opp = "Stockfish %d" % db.get_level()
 
-            if not c is None and "board" in c:
+            if c is not None and "board" in c:
                 self.game_history.headers["Board"] = c["board"]
 
             if self.is_white:
@@ -228,7 +225,7 @@ class main(FloatLayout):
                 opp_color = "black"
             else:
                 opp_color = "white"
-            if not c is None and "challenger" in c:
+            if c is not None and "challenger" in c:
                 self.info_text = "Opponent: %s is %s\n" % (
                     c["challenger"], opp_color)
                 if not c["turn"]:
@@ -288,7 +285,7 @@ class main(FloatLayout):
 
     def fish_move(self):
         c = custom_game.value
-        if not c is None and "turn" in c:
+        if c is not None and "turn" in c:
             c["turn"] = not c["turn"]
             custom_game.set(c)
             self.set_legal_moves()
@@ -361,7 +358,7 @@ class main(FloatLayout):
         if highmove == "resign":
             c = custom_game.value
             self.set_legal_moves(end=True)
-            if not c is None and "turn" in c:
+            if c is not None and "turn" in c:
                 if c["turn"]:
                     self.end_game("w")
                 else:
@@ -404,7 +401,7 @@ class main(FloatLayout):
             self.end_game("d")
         else:
             c = custom_game.value
-            if not c is None and "turn" in c:
+            if c is not None and "turn" in c:
                 if c["turn"]:
                     self.end_game("l")
                 else:
@@ -424,7 +421,7 @@ class main(FloatLayout):
         c = custom_game.value
         if result == "w":
             c = custom_game.value
-            if not c is None:
+            if c is not None:
                 if "challenger" in c:
                     payout = 2000
                 elif "board" in c:
@@ -453,7 +450,7 @@ class main(FloatLayout):
                 skill -= 1
                 self.fish.set_skill_level(skill)
                 db.set_level(skill)
-            if not c is None and "challenger" in c:
+            if c is not None and "challenger" in c:
                 db.change_points(c["challenger"], 2500)
             self.update_info(text="Twitch chat lost", hold=True)
 
@@ -468,7 +465,7 @@ class main(FloatLayout):
         if not self.is_white:
             self.evaluate_position()
             c = custom_game.value
-            if not c is None and "challenger" in c:
+            if c is not None and "challenger" in c:
                 Clock.schedule_once(self.set_legal_moves, 5)
             else:
                 Clock.schedule_once(self.fish_move_, 5)
@@ -483,7 +480,7 @@ class main(FloatLayout):
         self.fish.set_skill_level(db.get_level())
         c = db.new_game()
         vis = visiting.value
-        if not vis is None:
+        if vis is not None:
             if c is None:
                 c = {"challenger": vis}
             else:
@@ -585,10 +582,10 @@ class main(FloatLayout):
             count += 1
             remove = []
             for i in temp:
-                if not i in moves:
-                    moves[i] = 0
-                else:
+                if i in moves:
                     remove.append(i)
+                else:
+                    moves[i] = 0
             for i in remove:
                 temp.remove(i)
             notation_moves_temp[san] = temp
@@ -602,7 +599,7 @@ class main(FloatLayout):
             notation_moves_temp["draw"] = ["draw", "00"]
         else:
             tmp = custom_game.value
-            # if not tmp is None and "turn" in tmp and tmp["turn"]:
+            # if tmp is not None and "turn" in tmp and tmp["turn"]:
             movelist += " (0)resign"
             moves["resign"] = 0
             moves["0"] = 0
@@ -630,7 +627,7 @@ class main(FloatLayout):
         if len(voted.value) == 0:
             return
         c = custom_game.value
-        if not c is None and "challenger" in c and c["turn"] and not self.counting:
+        if c is not None and "challenger" in c and c["turn"] and not self.counting:
             self.counting = True
             self.player_move(0)
             return
@@ -698,7 +695,7 @@ async def event_message(ctx):
     c = custom_game.value
     processed = ctx.content.replace(
         "+", "").replace("#", "").casefold().replace("x", "")
-    if not c is None and "challenger" in c:
+    if c is not None and "challenger" in c:
         if c["turn"]:
             if ctx.author.name == c["challenger"]:
                 votes = voted.value
@@ -855,7 +852,7 @@ async def command_rob(ctx):
     result = random.randrange(10)
     if result == 0:
         db.change_points(ctx.author.name, delta * 10)
-        await ws.send_privmsg("#%s" % ctx.channel, f"/me SirSword %s robbed the bank for %d points! SirMad They now have %d points. SirPrise" % (ctx.author.name, delta*10, db.get_points(ctx.author.name)))
+        await ws.send_privmsg("#%s" % ctx.channel, f"/me SirSword %s robbed the bank for %d points! SirMad They now have %d points. SirPrise" % (ctx.author.name, delta * 10, db.get_points(ctx.author.name)))
     else:
         db.change_points(ctx.author.name, -delta)
         await ws.send_privmsg("#%s" % ctx.channel, f"/me %s got caught trying to rob a bank. NotLikeThis They had to pay %d points in bail." % (ctx.author.name, delta))
@@ -1054,7 +1051,7 @@ async def command_pgnplay(ctx):
 async def command_claim(ctx):
     ws = bot._ws
     result = db.get_daily_status(ctx.author.name)
-    if result is None or result == True:
+    if result is None or result is True:
         db.change_points(ctx.author.name, 69)
         db.reset_account_date(ctx.author.name)
         await ws.send_privmsg("#%s" % ctx.channel, f"/me 69 points have been added to your account.")
@@ -1131,7 +1128,7 @@ async def command_duel(ctx):
 async def command_accept(ctx):
     ws = bot._ws
     result = db.accept_challenge(ctx.author.name)
-    if not result is None:
+    if result is not None:
         if db.get_points(result[0]) < result[2]:
             await ws.send_privmsg("#%s" % ctx.channel, f"/me %s does not have enough points for the duel right now" % result[0])
             return
@@ -1206,7 +1203,7 @@ async def command_send(ctx):
     ws = bot._ws
     params = get_params(ctx.content)
     if ctx.author.name == "twitch_plays_chess_":
-        if not visiting.value is None:
+        if visiting.value is not None:
             await bot.part_channels([visiting.value])
         await bot.join_channels(["#%s" % params[0]])
         await ws.send_privmsg("#%s" % ctx.channel, f"/me Now monitoring %s's stream chat, type !leavestream to have me leave." % params[0])
@@ -1257,7 +1254,7 @@ async def command_veto(ctx):
         return
 
     c = custom_game.value
-    if not c is None and "challenger" in c:
+    if c is not None and "challenger" in c:
         if c["turn"]:
             return
         if ctx.author.name == c["challenger"]:
@@ -1289,7 +1286,7 @@ async def command_changetimer(ctx):
             await ws.send_privmsg("#%s" % ctx.channel, f"/me Only the channel owner can change the vote timer")
             return
     else:
-        if not ctx.author.name in ["twitch_plays_chess_", temp]:
+        if ctx.author.name not in ["twitch_plays_chess_", temp]:
             await ws.send_privmsg("#%s" % ctx.channel, f"/me Only the channel owner or %s can change the vote timer" % temp)
             return
 
@@ -1318,7 +1315,7 @@ async def command_lock(ctx):
     if temp is None:
         return
     else:
-        if not ctx.author.name in ["twitch_plays_chess_", temp]:
+        if ctx.author.name not in ["twitch_plays_chess_", temp]:
             await ws.send_privmsg("#%s" % ctx.channel, f"/me Only the channel owner or %s can use !lock" % temp)
             return
     new = not lock.value
@@ -1341,7 +1338,7 @@ async def command_leaderboard(ctx):
             await ws.send_privmsg("#%s" % ctx.channel, f"/me That's not a valid position number on the leaderboard")
             return
 
-        result = db.get_vip_list()[place-1]
+        result = db.get_vip_list()[place - 1]
         await ws.send_privmsg("#%s" % ctx.channel, f"/me Number %d on the VIP leaderboard is %s with %d points spent" % (place, result[0], result[1]))
     except:
         try:
@@ -1372,10 +1369,10 @@ async def event_abort(ctx, override):
 async def event_announce():
     ws = bot._ws
     temp = poll_message.value
-    if not temp is None:
+    if temp is not None:
         for i in temp:
             await ws.send_privmsg(secrets['DEFAULT']['channel'], f"/me %s" % i)
-            if not visiting.value is None:
+            if visiting.value is not None:
                 await ws.send_privmsg("#%s" % visiting.value, f"/me %s" % i)
         poll_message.set(None)
 
@@ -1384,7 +1381,7 @@ async def event_announce():
 async def event_announcenow(message):
     ws = bot._ws
     await ws.send_privmsg(secrets['DEFAULT']['channel'], f"/me %s" % message)
-    if not visiting.value is None:
+    if visiting.value is not None:
         await ws.send_privmsg("#%s" % visiting.value, f"/me %s" % message)
 # TODO: Autodelayed chat for visiting
 

@@ -112,7 +112,7 @@ class conn():
         return self.get_game_params()
 
     def get_game_params(self, param=None):
-        if param == None:
+        if param is None:
             db = self.c.execute('select * from current').fetchall()
             if len(db) == 0:
                 return None

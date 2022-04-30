@@ -23,10 +23,10 @@ conn.commit()
 conn.close()
 
 """CREATE TABLE `challenges` (
-	`challenger`	TEXT NOT NULL UNIQUE,
-	`victim`	TEXT NOT NULL UNIQUE,
-	`amount`	INTEGER NOT NULL,
-	`timestamp`	TIMESTAMP NOT NULL,
-	PRIMARY KEY(`victim`)
+    `challenger`    TEXT NOT NULL UNIQUE,
+    `victim`    TEXT NOT NULL UNIQUE,
+    `amount`    INTEGER NOT NULL,
+    `timestamp`    TIMESTAMP NOT NULL,
+    PRIMARY KEY(`victim`)
 );
 update accounts set daily=datetime('now', '-2 day')"""
