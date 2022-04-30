@@ -21,11 +21,11 @@ for i in a["DEFAULT"]:
 conn.commit()
 conn.close()
 
-CREATE TABLE `challenges` (
+"""CREATE TABLE `challenges` (
 	`challenger`	TEXT NOT NULL UNIQUE,
 	`victim`	TEXT NOT NULL UNIQUE,
 	`amount`	INTEGER NOT NULL,
 	`timestamp`	TIMESTAMP NOT NULL,
 	PRIMARY KEY(`victim`)
 );
-update accounts set daily=datetime('now', '-2 day')
+update accounts set daily=datetime('now', '-2 day')"""
