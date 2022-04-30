@@ -4,7 +4,7 @@
 block_cipher = None
 
 
-a = Analysis(['main.py', 'chessApp.py', 'render.py', 'tpcdb.py', 'util.py'],
+a = Analysis(['main.py', 'render.py', 'tpcdb.py', 'util.py'],
              pathex=['/home/lila/twitchchess'],
              binaries=[],
              datas=[],

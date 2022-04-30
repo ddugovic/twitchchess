@@ -42,7 +42,7 @@ def check_valid(expanded_fen):
 def expand_fen(fen):
     '''Preprocesses a fen string into an internal format.
 
-    Each square on the chessboard is represented by a single 
+    Each square on the chessboard is represented by a single
     character in the output string. The rank separator characters
     are removed. Invalid inputs raise a BadChessboard error.
     '''
@@ -73,7 +73,7 @@ def draw_board(n=8, sq_size=(20, 20)):
 class DrawChessPosition(object):
     '''Chess position renderer.
 
-    Create an instance of this class, then call 
+    Create an instance of this class, then call
     '''
 
     def __init__(self):
@@ -85,7 +85,7 @@ class DrawChessPosition(object):
     def create_pieces(self):
         '''Load the chess pieces from disk.
 
-        Also extracts and caches the alpha masks for these pieces. 
+        Also extracts and caches the alpha masks for these pieces.
         '''
         whites = 'KQBNRP'
         piece_images = dict(

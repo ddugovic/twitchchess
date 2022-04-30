@@ -598,7 +598,7 @@ class main(FloatLayout):
             moves["00"] = 0
             notation_moves_temp["draw"] = ["draw", "00"]
         else:
-            tmp = custom_game.value
+            # tmp = custom_game.value
             # if tmp is not None and "turn" in tmp and tmp["turn"]:
             movelist += " (0)resign"
             moves["resign"] = 0
@@ -1354,7 +1354,7 @@ async def command_leaderboard(ctx):
 
 @bot.event
 async def event_abort(ctx, override):
-    ws = bot._ws
+    # ws = bot._ws
     if ctx.author.name == "twitch_plays_chess_" or override:
         moves.clear()
         moves["abort"] = 1
